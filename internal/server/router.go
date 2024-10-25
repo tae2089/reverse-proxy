@@ -7,8 +7,8 @@ import (
 	"github.com/tae2089/reverse-proxy/internal/server/middleware"
 )
 
-func newProxyRouter(router *http.ServeMux, proxyController controller.ProxyController, mode string, UrlPatternStr string) error {
-	m := middleware.New(mode, UrlPatternStr)
+func newProxyRouter(router *http.ServeMux, proxyController controller.ProxyController, mode, UrlPatternStr string, enableMetrics bool) error {
+	m := middleware.New(mode, UrlPatternStr, enableMetrics)
 	router.Handle("/", MultipleMiddleware(proxyController.ProxyRequestHandler(), m.GetMiddlewares()...))
 	return nil
 }

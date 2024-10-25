@@ -9,13 +9,13 @@ type Middleware interface {
 }
 
 // New creates a new middleware
-func New(mode, UrlPatternStr string) Middleware {
+func New(mode, UrlPatternStr string, enableMetrics bool) Middleware {
 	var m Middleware
 	switch mode {
 	case "otel":
-		m = newOtelMiddleware(UrlPatternStr)
+		m = newOtelMiddleware(enableMetrics, UrlPatternStr)
 	default:
-		m = newOtelMiddleware(UrlPatternStr)
+		m = newOtelMiddleware(enableMetrics, UrlPatternStr)
 	}
 	return m
 }

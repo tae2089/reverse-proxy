@@ -61,6 +61,6 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&o.TargetHost, "target-host", "", "Target host to proxy requests to, example: --target-host=http://localhost:8080")
 	cmd.Flags().StringVar(&o.Mode, "mode", "otel", "Mode to run the server in, default is otel. example: --mode=otel")
 	cmd.Flags().BoolVar(&o.DisableMetrics, "disable-metrics", false, "Disable metrics, default is false. example: --disable-metrics")
-	cmd.Flags().StringVar(&o.UrlPatternStr, "url-patterns", "", "URL patterns to match. you can use pattern list separated by comma, e.g. /api,/api/{id},/api/v1/{id}")
+	cmd.Flags().StringVar(&o.UrlPatternStr, "url-patterns", "", "URL patterns to match. you can use pattern list separated by comma, e.g. --url-patterns=/api,/api/{id},/api/v1/{id}")
 	cmd.Flags().StringVar(&o.ApplicationName, "application-name", "demo", "Application name is target server name, default is demo. example: --application-name=demo")
 }

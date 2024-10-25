@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -29,7 +28,6 @@ type proxyController struct {
 func (p *proxyController) ProxyRequestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p.reverseProxy.ServeHTTP(w, r)
-		time.Sleep(4 * time.Second)
 	}
 }
 

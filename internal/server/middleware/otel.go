@@ -18,13 +18,12 @@ import (
 )
 
 type otelMiddleware struct {
-	//totalConnections int64
+	IsEnabledMeasureLatency bool
 	Gauge                   prometheus.Gauge
 	Tracer                  trace.Tracer
 	Props                   propagation.TextMapPropagator
 	httpLatencyHistogram    *prometheus.HistogramVec
 	PatternTree             *utils.Tree
-	IsEnabledMeasureLatency bool
 	HttpRequestsCounter     *prometheus.CounterVec
 }
 
@@ -83,6 +82,10 @@ func (m *otelMiddleware) TimerMiddleware(h http.HandlerFunc) http.HandlerFunc {
 // TotalConnectionsMiddleware increments the total connections counter
 func (m *otelMiddleware) MetricsMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// If the measure latency is disabled, skip the measure
+		if !m.IsEnabledMeasureLatency {
+			h.ServeHTTP(w, r)
+		}
 		// Increment the total connections counter
 		m.Gauge.Inc()
 		h.ServeHTTP(w, r)
@@ -99,6 +102,8 @@ func (m *otelMiddleware) MetricsMiddleware(h http.HandlerFunc) http.HandlerFunc 
 // TraceIDMiddleware adds a trace ID to the request context
 func (m *otelMiddleware) TraceIDMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		//if the request has a traceparent header, extract the trace ID
+		// if not, create a new trace ID
 		var targetCtx context.Context
 		if r.Header.Get("Traceparent") != "" {
 			log.Info("Get header", zap.Any("Header", r.Header))
@@ -106,8 +111,11 @@ func (m *otelMiddleware) TraceIDMiddleware(h http.HandlerFunc) http.HandlerFunc 
 		} else {
 			targetCtx = r.Context()
 		}
+		// Create a new span with the trace ID
+		// and inject the span context into the request headers
 		ctx, span := m.Tracer.Start(targetCtx, "reverse-proxy")
 		m.Props.Inject(ctx, propagation.HeaderCarrier(r.Header))
+		// Update the request with the new context
 		*r = *r.WithContext(ctx)
 		h.ServeHTTP(w, r)
 		span.End()
@@ -143,7 +151,7 @@ func (m *otelMiddleware) countStatusCode(path, method string, statusCode int) {
 	m.HttpRequestsCounter.WithLabelValues(path, method, status).Inc()
 }
 
-func newOtelMiddleware(UrlPatternStr string) Middleware {
+func newOtelMiddleware(enableMetrics bool, UrlPatternStr string) Middleware {
 	tracer := otel.GetTracerProvider().Tracer("reverse-proxy")
 	var gauge prometheus.Gauge = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "total_connections",
@@ -175,12 +183,13 @@ func newOtelMiddleware(UrlPatternStr string) Middleware {
 	}
 
 	m := &otelMiddleware{
-		Gauge:                gauge,
-		Tracer:               tracer,
-		Props:                otel.GetTextMapPropagator(),
-		httpLatencyHistogram: httpLatencyHistogram,
-		PatternTree:          pattenrTree,
-		HttpRequestsCounter:  httpRequestsCounter,
+		Gauge:                   gauge,
+		Tracer:                  tracer,
+		Props:                   otel.GetTextMapPropagator(),
+		httpLatencyHistogram:    httpLatencyHistogram,
+		PatternTree:             pattenrTree,
+		HttpRequestsCounter:     httpRequestsCounter,
+		IsEnabledMeasureLatency: enableMetrics,
 	}
 	return m
 }
