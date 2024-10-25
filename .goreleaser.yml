@@ -1,0 +1,35 @@
+project_name: reverse-proxy
+
+dockers:
+  - image_templates:
+      - "tae2089/reverse-proxy:latest"
+      - "tae2089/reverse-proxy:{{ .Version }}"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - --build-arg=VERSION={{.Version}}
+
+builds:
+  - id: reverse-proxy
+    main: ./cmd/reverse-proxy
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: "386"
+
+release:
+  github:
+    owner: tae2089
+    name: reverse-proxy
+
+archives:
+  - format: binary
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+
+changelog:
+  use: github
+  sort: asc
