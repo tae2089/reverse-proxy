@@ -155,7 +155,7 @@ func newOtelMiddleware(enableMetrics bool, UrlPatternStr string) Middleware {
 	tracer := otel.GetTracerProvider().Tracer("reverse-proxy")
 	var gauge prometheus.Gauge = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "total_connections",
-		Help: "Total connections",
+		Help: "Total connections to the service",
 	})
 
 	// Define a new Histogram metric
