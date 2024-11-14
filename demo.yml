@@ -1,8 +1,0 @@
-name: demo
-version: 1.0.0
-description: A demo project
-enviorment:
-  - name: dev
-    url: http://dev.example.com
-  - name: prod
-    url: http://prod.example.com
