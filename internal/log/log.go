@@ -68,11 +68,11 @@ func GetLoggingFieldsByRequest(r *http.Request, statusCode int, duration time.Du
 		query = "?" + r.URL.RawQuery
 	}
 	loggingDefault := []zap.Field{
-		zap.Int("Status Code", statusCode),
-		zap.String("Remote-Host", r.RemoteAddr),
-		zap.String("Method", r.Method),
-		zap.String("Path", r.URL.Path+query),
-		zap.Duration("Response Time", duration),
+		zap.Int("status_code", statusCode),
+		zap.String("remote_host", r.RemoteAddr),
+		zap.String("method", r.Method),
+		zap.String("path", r.URL.Path+query),
+		zap.Duration("response_time", duration),
 	}
 
 	return loggingDefault

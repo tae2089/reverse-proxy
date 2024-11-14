@@ -12,6 +12,7 @@ import (
 	"github.com/tae2089/reverse-proxy/internal/server/domain"
 	"github.com/tae2089/reverse-proxy/internal/utils"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -113,7 +114,15 @@ func (m *otelMiddleware) TraceIDMiddleware(h http.HandlerFunc) http.HandlerFunc 
 		}
 		// Create a new span with the trace ID
 		// and inject the span context into the request headers
-		ctx, span := m.Tracer.Start(targetCtx, "reverse-proxy")
+		ctx, span := m.Tracer.Start(targetCtx, "reverse-proxy",
+			trace.WithSpanKind(trace.SpanKindServer),
+			trace.WithAttributes(
+				attribute.KeyValue{
+					Key:   attribute.Key("http.method"),
+					Value: attribute.StringValue(r.Method),
+				},
+			),
+		)
 		m.Props.Inject(ctx, propagation.HeaderCarrier(r.Header))
 		// Update the request with the new context
 		*r = *r.WithContext(ctx)
